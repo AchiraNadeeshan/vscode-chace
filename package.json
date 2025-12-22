@@ -9,13 +9,15 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:vscode-chace.completeFunction"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-chace.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-chace.completeFunction",
+        "title": "CHACE: Complete Function"
       }
     ]
   },

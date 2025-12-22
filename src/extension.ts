@@ -1,26 +1,51 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode"; // vscode api
+import * as net from "net";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const DEFAULT_SOCKET_PATH = "/tmp/chace.sock";
+
+// runs in the very first time extension is activated
 export function activate(context: vscode.ExtensionContext) {
+  // will be executed only once
+  console.log('"vscode-chace" is now active!');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-chace" is now active!');
+  const disposable = vscode.commands.registerCommand(
+    "vscode-chace.completeFunction",
+    async () => {
+      // will be executed every time command is executed
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("No active editor");
+        return;
+      }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('vscode-chace.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-chace!');
-	});
-
-	context.subscriptions.push(disposable);
+      // test socket connectivity
+      try {
+        await pingChace();
+        vscode.window.showInformationMessage("Connected to CHACE");
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          `CHACE connection failed: ${String(err)}`
+        );
+      }
+    }
+  );
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+// called when extension is deactivated
 export function deactivate() {}
+
+function pingChace(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const client = net.createConnection(DEFAULT_SOCKET_PATH);
+
+    client.once("connect", () => {
+      client.end();
+      resolve();
+    });
+
+    client.once("error", (err) => {
+      reject(err);
+    });
+  });
+}
